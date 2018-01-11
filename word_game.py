@@ -258,6 +258,14 @@ def all_plays(hand, board):
                    for score, (i, j), word in vplays)
 
 
+def make_play(play, board):
+    "Put the word down on the board."
+    (score, (i, j), (di, dj), word) = play
+    for n, L in enumerate(word):
+        board[j + dj * n][i + di * n] = L
+    return board
+
+
 def find_cross_word(board, i, j):
     """Find the vertical word that crosses board[j][i]. Return (j2, w),
     where j2 is the starting row, and w is the word"""
