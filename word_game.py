@@ -111,6 +111,13 @@ def word_score(word):
     return sum(POINTS[letter] for letter in word)
 
 
+def topn(hand, board_letters, n=10):
+    "Return a list of the top n words that hand can play, sorted by word score."
+    words = sorted(
+        word_plays(hand, board_letters), key=word_score, reverse=True)
+    return words[:n]
+
+
 def timedcall(fn, *args):
     "Call function with args; return the time in seconds and result."
     t0 = time.clock()
