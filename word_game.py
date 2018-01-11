@@ -34,7 +34,7 @@ def find_words(letters):
         if w in WORDS: results.add(w)
         if w not in PREFIXES: return
         for L in letters:
-            extend_prefix(w + L, removed(letters, L))
+            extend_prefix(w + L, letters.replace(L, '', 1))
 
     extend_prefix('', letters)
     return results
