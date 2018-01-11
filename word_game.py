@@ -201,12 +201,13 @@ def row_plays(hand, row):
 
 
 def horizontal_plays(hand, board):
-    "Find all horizontal plays -- ((i, j), word) pairs -- across all rows."
+    "Find all horizontal plays -- (score, (i, j), word) pairs -- across all rows."
     results = set()
     for (j, row) in enumerate(board[1:-1], 1):
         set_anchors(row, j, board)
         for i, word in row_plays(hand, row):
-            results.add(((i, j), word))
+            score = calculate_score(board, (i, j), ACROSS, hand, word)
+            results.add((score, (i, j), word))
     return results
 
 
@@ -220,13 +221,14 @@ ACROSS, DOWN = (1, 0), (0, 1)  # Directions that words can go
 
 
 def all_plays(hand, board):
-    """All plays in both directions. A play is a (pos, dir, word) tuple,
+    """All plays in both directions. A play is a (score, pos, dir, word) tuple,
     where pos is an (i, j) pair, and dir is ACROSS or DOWN."""
     hplays = horizontal_plays(hand, board)  # set of ((i, j), word)
     vplays = horizontal_plays(hand, transpose(board))  # set of ((j, i), word)
-    return set(((i, j), ACROSS, word)
-               for (i, j), word in hplays) | set(((j, i), DOWN, word)
-                                                 for (i, j), word in vplays)
+    return set((score, (i, j), ACROSS, word)
+               for score, (i, j), word in hplays) | set(
+                   (score, (j, i), DOWN, word)
+                   for score, (i, j), word in vplays)
 
 
 def find_cross_word(board, i, j):
