@@ -200,6 +200,16 @@ def row_plays(hand, row):
     return results
 
 
+def horizontal_plays(hand, board):
+    "Find all horizontal plays -- ((i, j), word) pairs -- across all rows."
+    results = set()
+    for (j, row) in enumerate(board[1:-1], 1):
+        set_anchors(row, j, board)
+        for i, word in row_plays(hand, row):
+            results.add(((i, j), word))
+    return results
+
+
 def a_board():
     return map(list, [
         '|||||||||||||||||', '|J............I.|', '|A.....BE.C...D.|',
