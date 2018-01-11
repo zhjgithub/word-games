@@ -70,6 +70,12 @@ def add_suffixes(hand, pre, results):
     return results
 
 
+def longest_words(hand, board_letters):
+    "Return all word plays, longest first."
+    words = word_plays(hand, board_letters)
+    return sorted(words, key=len, reverse=True)
+
+
 def timedcall(fn, *args):
     "Call function with args; return the time in seconds and result."
     t0 = time.clock()
@@ -87,6 +93,17 @@ def test():
     assert 'MOVING' in WORDS
     assert 'UNDERSTANDIN' in PREFIXES
     assert 'ZOMB' in PREFIXES
+
+    assert (word_plays('ADEQUAT', set('IRE')) == set([
+        'DIE', 'ATE', 'READ', 'AIT', 'DE', 'IDEA', 'RET', 'QUID', 'DATE',
+        'RATE', 'ETA', 'QUIET', 'ERA', 'TIE', 'DEAR', 'AID', 'TRADE', 'TRUE',
+        'DEE', 'RED', 'RAD', 'TAR', 'TAE', 'TEAR', 'TEA', 'TED', 'TEE',
+        'QUITE', 'RE', 'RAT', 'QUADRATE', 'EAR', 'EAU', 'EAT', 'QAID', 'URD',
+        'DUI', 'DIT', 'AE', 'AI', 'ED', 'TI', 'IT', 'DUE', 'AQUAE', 'AR', 'ET',
+        'ID', 'ER', 'QUIT', 'ART', 'AREA', 'EQUID', 'RUE', 'TUI', 'ARE', 'QI',
+        'ADEQUATE', 'RUT'
+    ]))
+
     print('tests pass')
 
 
