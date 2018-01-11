@@ -303,11 +303,49 @@ def a_board():
     ])
 
 
+def bonus_template(quadrant):
+    "Make a board from the upper-left quadrant."
+    return mirror(list(map(mirror, quadrant.split())))
+
+
+def mirror(sequence):
+    return sequence + sequence[-2::-1]
+
+
+SCRABBLE = bonus_template("""
+|||||||||
+|3..:...3
+|.2...;..
+|..2...:.
+|:..2...:
+|....2...
+|.;...;..
+|..:...:.
+|3..:...*
+""")
+
+WWF = bonus_template("""
+|||||||||
+|...3..;.
+|..:..2..
+|.:..:...
+|3..;...2
+|..:...:.
+|.2...3..
+|;...:...
+|...:...*
+""")
+
+BONUS = WWF
+
+DW, TW, DL, TL = '23:;'
+
+
 def show(board):
     "Print the board."
-    for row in board:
-        for sq in row:
-            print(sq, end=' ')
+    for j, row in enumerate(board):
+        for i, sq in enumerate(row):
+            print(sq if is_letter(sq) or sq == '|' else BONUS[j][i], end=' ')
         print()
 
 
