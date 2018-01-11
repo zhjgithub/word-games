@@ -266,6 +266,15 @@ def make_play(play, board):
     return board
 
 
+NOPLAY = None
+
+
+def best_play(hand, board):
+    "Return the highest-scoring play.  Or None."
+    plays = all_plays(hand, board)
+    return sorted(plays)[-1] if plays else NOPLAY
+
+
 def find_cross_word(board, i, j):
     """Find the vertical word that crosses board[j][i]. Return (j2, w),
     where j2 is the starting row, and w is the word"""
