@@ -229,6 +229,44 @@ def all_plays(hand, board):
                                                  for (i, j), word in vplays)
 
 
+def find_cross_word(board, i, j):
+    """Find the vertical word that crosses board[j][i]. Return (j2, w),
+    where j2 is the starting row, and w is the word"""
+    sq = board[j][i]
+    w = sq if is_letter(sq) else '.'
+    for j2 in range(j, 0, -1):
+        sq2 = board[j2 - 1][i]
+        if is_letter(sq2): w = sq2 + w
+        else: break
+    for j3 in range(j + 1, len(board)):
+        sq3 = board[j3][i]
+        if is_letter(sq3): w = w + sq3
+        else: break
+    return (j2, w)
+
+
+def neighbors(board, i, j):
+    """Return a list of the contents of the four neighboring squares,
+    in the order N,S,E,W."""
+    return [board[j - 1][i], board[j + 1][i], board[j][i + 1], board[j][i - 1]]
+
+
+def set_anchors(row, j, board):
+    """Anchors are empty squares with a neighboring letter. Some are resticted
+    by cross-words to be only a subset of letters."""
+    for (i, sq) in enumerate(row[1:-1], 1):
+        neighborlist = (N, S, E, W) = neighbors(board, i, j)
+        # Anchors are squares adjacent to a letter.  Plus the '*' square.
+        if sq == '*' or (is_empty(sq) and any(map(is_letter, neighborlist))):
+            if is_letter(N) or is_letter(S):
+                # Find letters that fit with the cross (vertical) word
+                (j2, w) = find_cross_word(board, i, j)
+                row[i] = anchor(
+                    L for L in LETTERS if w.replace('.', L) in WORDS)
+            else:  # Unrestricted empty square -- any letter will fit.
+                row[i] = ANY
+
+
 def a_board():
     return map(list, [
         '|||||||||||||||||', '|J............I.|', '|A.....BE.C...D.|',
