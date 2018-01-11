@@ -211,6 +211,33 @@ def horizontal_plays(hand, board):
     return results
 
 
+def calculate_score(board, pos, direction, hand, word):
+    "Return the total score for this play."
+    total, crosstotal, word_mult = 0, 0, 1
+    starti, startj = pos
+    di, dj = direction
+    other_direction = DOWN if direction == ACROSS else ACROSS
+    for n, L in enumerate(word):
+        i, j = starti + n * di, startj + n * dj
+        sq = board[j][i]
+        b = BONUS[j][i]
+        word_mult *= 1 if is_letter(sq) else 3 if b == TW else 2 if b in (
+            DW, '*') else 1
+        letter_mult = 1 if is_letter(
+            sq) else 3 if b == TL else 2 if b == DL else 1
+        total += POINTS[sq] * letter_mult
+        if isinstance(sq, anchor) and sq is not ANY and direction is not DOWN:
+            crosstotal += cross_word_score(board, L, (i, j), other_direction)
+        return crosstotal + total * word_mult
+
+
+def cross_word_score(board, L, pos, direction):
+    "Return the score of a word made in the other direction from the main word."
+    i, j = pos
+    j2, word = find_cross_word(board, i, j)
+    return calculate_score(board, (i, j2), DOWN, L, word.replace('.', L))
+
+
 def transpose(matrix):
     "Transpose e.g. [[1,2,3], [4,5,6]] to [[1, 4], [2, 5], [3, 6]]"
     # or [[M[j][i] for j in range(len(M))] for i in range(len(M[0]))]
