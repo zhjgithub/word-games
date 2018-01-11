@@ -366,6 +366,17 @@ def show(board):
         print()
 
 
+def show_best(hand, board):
+    print('Current board:')
+    show(board)
+    play = best_play(hand, board)
+    if play:
+        print('\nNew word: {} scores {}'.format(play[-1], play[0]))
+        show(make_play(play, board))
+    else:
+        print('Sorry, no legal plays')
+
+
 def timedcall(fn, *args):
     "Call function with args; return the time in seconds and result."
     t0 = time.clock()
