@@ -50,9 +50,17 @@ def word_plays(hand, board_letters):
     return results
 
 
+prev_hand, prev_results = '', set()  # cache for find_prefixes
+
+
 def find_prefixes(hand, pre='', results=None):
     "Find all prefixes (of words) that can be made from letters in hand."
+    global prev_hand, prev_results
+    if prev_hand == hand:
+        return prev_results
     if results is None: results = set()
+    if pre == '':
+        prev_hand, prev_results = hand, results
     if pre in PREFIXES:
         results.add(pre)
         for L in hand:
