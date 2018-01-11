@@ -46,7 +46,7 @@ def word_plays(hand, board_letters):
     results = set()
     for pre in find_prefixes(hand, '', set()):
         for L in board_letters:
-            add_suffixes(removed(hand, pre), pre + L, results)
+            add_suffixes1(removed(hand, pre), pre + L, results)
     return results
 
 
@@ -68,13 +68,31 @@ def find_prefixes(hand, pre='', results=None):
     return results
 
 
-def add_suffixes(hand, pre, results):
+def add_suffixes1(hand, pre, results):
     """Return the set of words that can be formed by extending pre with letters in hand."""
     if pre in WORDS:
         results.add(pre)
     if pre in PREFIXES:
         for L in hand:
-            add_suffixes(hand.replace(L, '', 1), pre + L, results)
+            add_suffixes1(hand.replace(L, '', 1), pre + L, results)
+    return results
+
+
+def add_suffixes(hand, pre, start, row, results, anchored=True):
+    "Add all possible suffixes, and accumulate (start, word) pairs in results."
+    i = start + len(pre)
+    if pre in WORDS and anchored and not is_letter(row[i]):
+        results.add((start, pre))
+    if pre in PREFIXES:
+        sq = row[i]
+        if is_letter(sq):
+            add_suffixes(hand, pre + sq, start, row, results)
+        elif is_empty(sq):
+            possibilities = sq if isinstance(sq, set) else ANY
+            for L in hand:
+                if L in possibilities:
+                    add_suffixes(
+                        hand.replace(L, '', 1), pre + L, start, row, results)
     return results
 
 
@@ -126,12 +144,68 @@ def topn(hand, board_letters, n=10):
     return words[:n]
 
 
+class anchor(set):
+    "An anchor is where a new word can be placed; has a set of allowable letters."
+
+
+LETTERS = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+ANY = anchor(LETTERS)  # The anchor that can be any letter
+
+
+def is_letter(sq):
+    return isinstance(sq, str) and sq in LETTERS
+
+
+def is_empty(sq):
+    "Is this an empty square (no letters, but a valid position on board)."
+    return sq == '.' or sq == '*' or isinstance(sq, set)
+
+
+def legal_prefix(i, row):
+    """A legal prefix of an anchor at row[i] is either a string of letters
+    already on the board, or new letters that fit into an empty space.
+    Return the tuple (prefix_on_board, maxsize) to indicate this.
+    E.g. legal_prefix(a_row, 9) == ('BE', 2) and for 6, ('', 2)."""
+    s = i
+    while is_letter(row[s - 1]):
+        s -= 1
+    if s < i:  ## There is a prefix
+        return ''.join(row[s:i]), i - s
+    while is_empty(row[s - 1]) and not isinstance(row[s - 1], anchor):
+        s -= 1
+    return ('', i - s)
+
+
+def row_plays(hand, row):
+    "Return a set of legal plays in row.  A row play is an (start, 'WORD') pair."
+    results = set()
+    ## To each allowable prefix, add all suffixes, keeping words
+    for (i, sq) in enumerate(row[1:-1], 1):
+        if isinstance(sq, set):
+            pre, maxsize = legal_prefix(i, row)
+            if pre:  ## Add to the letters already on the board
+                start = i - len(pre)
+                add_suffixes(hand, pre, start, row, results, anchored=False)
+            else:  ## Empty to left: go through the set of all possible prefixes
+                for pre in find_prefixes(hand):
+                    if len(pre) <= maxsize:
+                        start = i - len(pre)
+                        add_suffixes(
+                            removed(hand, pre),
+                            pre,
+                            start,
+                            row,
+                            results,
+                            anchored=False)
+    return results
+
+
 def a_board():
-    return map(list, ['|||||||||||||||||',
-                      '|J............I.|',
-                      '|A.....BE.C...D.|',
-                      '|GUY....F.H...L.|',
-                      '|||||||||||||||||'])
+    return map(list, [
+        '|||||||||||||||||', '|J............I.|', '|A.....BE.C...D.|',
+        '|GUY....F.H...L.|', '|||||||||||||||||'
+    ])
+
 
 def show(board):
     "Print the board."
@@ -139,6 +213,7 @@ def show(board):
         for sq in row:
             print(sq, end=' ')
         print()
+
 
 def timedcall(fn, *args):
     "Call function with args; return the time in seconds and result."
