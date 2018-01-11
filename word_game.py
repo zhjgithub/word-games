@@ -126,6 +126,20 @@ def topn(hand, board_letters, n=10):
     return words[:n]
 
 
+def a_board():
+    return map(list, ['|||||||||||||||||',
+                      '|J............I.|',
+                      '|A.....BE.C...D.|',
+                      '|GUY....F.H...L.|',
+                      '|||||||||||||||||'])
+
+def show(board):
+    "Print the board."
+    for row in board:
+        for sq in row:
+            print(sq, end=' ')
+        print()
+
 def timedcall(fn, *args):
     "Call function with args; return the time in seconds and result."
     t0 = time.clock()
@@ -226,3 +240,4 @@ if __name__ == '__main__':
     test()
     print(find_words('ZOMBIFY'))
     print(test_words())
+    show(a_board())
