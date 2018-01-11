@@ -21,6 +21,25 @@ def readwordlist(filename):
 WORDS, PREFIXES = readwordlist('words4k.txt')
 
 
+def removed(letters, word):
+    for w in word:
+        letters = letters.replace(w, '', 1)
+    return letters
+
+
+def find_words(letters):
+    results = set()
+
+    def extend_prefix(w, letters):
+        if w in WORDS: results.add(w)
+        if w not in PREFIXES: return
+        for L in letters:
+            extend_prefix(w + L, removed(letters, L))
+
+    extend_prefix('', letters)
+    return results
+
+
 def test():
     "tests."
     assert prefixes('WORD') == ['', 'W', 'WO', 'WOR']
@@ -35,3 +54,4 @@ def test():
 
 if __name__ == '__main__':
     test()
+    print(find_words('ZOMBIFY'))
