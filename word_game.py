@@ -210,6 +210,25 @@ def horizontal_plays(hand, board):
     return results
 
 
+def transpose(matrix):
+    "Transpose e.g. [[1,2,3], [4,5,6]] to [[1, 4], [2, 5], [3, 6]]"
+    # or [[M[j][i] for j in range(len(M))] for i in range(len(M[0]))]
+    return map(list, zip(*matrix))
+
+
+ACROSS, DOWN = (1, 0), (0, 1)  # Directions that words can go
+
+
+def all_plays(hand, board):
+    """All plays in both directions. A play is a (pos, dir, word) tuple,
+    where pos is an (i, j) pair, and dir is ACROSS or DOWN."""
+    hplays = horizontal_plays(hand, board)  # set of ((i, j), word)
+    vplays = horizontal_plays(hand, transpose(board))  # set of ((j, i), word)
+    return set(((i, j), ACROSS, word)
+               for (i, j), word in hplays) | set(((j, i), DOWN, word)
+                                                 for (i, j), word in vplays)
+
+
 def a_board():
     return map(list, [
         '|||||||||||||||||', '|J............I.|', '|A.....BE.C...D.|',
