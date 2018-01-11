@@ -28,16 +28,15 @@ def removed(letters, word):
     return letters
 
 
-def find_words(letters):
-    results = set()
+def find_words(letters, pre='', results=None):
+    if results is None:
+        results = set()
 
-    def extend_prefix(w, letters):
-        if w in WORDS: results.add(w)
-        if w not in PREFIXES: return
+    if pre in WORDS: results.add(pre)
+    if pre in PREFIXES:
         for L in letters:
-            extend_prefix(w + L, letters.replace(L, '', 1))
+            find_words(letters.replace(L, '', 1), pre + L, results)
 
-    extend_prefix('', letters)
     return results
 
 
