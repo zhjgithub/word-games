@@ -20,10 +20,11 @@ def readwordlist(filename):
 
 
 WORDS, PREFIXES = readwordlist('words4k.txt')
+space_trans = str.maketrans('abcdefghijklmnopqrstuvwxyz', '_' * 26)
 
 
 def removed(letters, word):
-    for w in word:
+    for w in word.translate(space_trans):
         letters = letters.replace(w, '', 1)
     return letters
 
@@ -61,10 +62,15 @@ def find_prefixes(hand, pre='', results=None):
     if results is None: results = set()
     if pre == '':
         prev_hand, prev_results = hand, results
-    if pre in PREFIXES:
+    if pre.upper() in PREFIXES:
         results.add(pre)
         for L in hand:
-            find_prefixes(hand.replace(L, '', 1), pre + L, results)
+            if L == '_':
+                for l in LETTERS:
+                    find_prefixes(
+                        hand.replace(L, '', 1), pre + l.lower(), results)
+            else:
+                find_prefixes(hand.replace(L, '', 1), pre + L, results)
     return results
 
 
@@ -81,9 +87,9 @@ def add_suffixes1(hand, pre, results):
 def add_suffixes(hand, pre, start, row, results, anchored=True):
     "Add all possible suffixes, and accumulate (start, word) pairs in results."
     i = start + len(pre)
-    if pre in WORDS and anchored and not is_letter(row[i]):
+    if pre.upper() in WORDS and anchored and not is_letter(row[i]):
         results.add((start, pre))
-    if pre in PREFIXES:
+    if pre.upper() in PREFIXES:
         sq = row[i]
         if is_letter(sq):
             add_suffixes(hand, pre + sq, start, row, results)
@@ -93,6 +99,11 @@ def add_suffixes(hand, pre, start, row, results, anchored=True):
                 if L in possibilities:
                     add_suffixes(
                         hand.replace(L, '', 1), pre + L, start, row, results)
+                elif L == '_':
+                    for l in possibilities:
+                        add_suffixes(
+                            hand.replace(L, '', 1), pre + l.lower(), start,
+                            row, results)
     return results
 
 
@@ -225,10 +236,11 @@ def calculate_score(board, pos, direction, hand, word):
             DW, '*') else 1
         letter_mult = 1 if is_letter(
             sq) else 3 if b == TL else 2 if b == DL else 1
-        total += POINTS[sq] * letter_mult
+        if not L.islower():
+            total += POINTS[L] * letter_mult
         if isinstance(sq, anchor) and sq is not ANY and direction is not DOWN:
             crosstotal += cross_word_score(board, L, (i, j), other_direction)
-        return crosstotal + total * word_mult
+    return crosstotal + total * word_mult
 
 
 def cross_word_score(board, L, pos, direction):
@@ -241,7 +253,7 @@ def cross_word_score(board, L, pos, direction):
 def transpose(matrix):
     "Transpose e.g. [[1,2,3], [4,5,6]] to [[1, 4], [2, 5], [3, 6]]"
     # or [[M[j][i] for j in range(len(M))] for i in range(len(M[0]))]
-    return map(list, zip(*matrix))
+    return list(map(list, zip(*matrix)))
 
 
 ACROSS, DOWN = (1, 0), (0, 1)  # Directions that words can go
@@ -253,9 +265,9 @@ def all_plays(hand, board):
     hplays = horizontal_plays(hand, board)  # set of ((i, j), word)
     vplays = horizontal_plays(hand, transpose(board))  # set of ((j, i), word)
     return set((score, (i, j), ACROSS, word)
-               for score, (i, j), word in hplays) | set(
-                   (score, (j, i), DOWN, word)
-                   for score, (i, j), word in vplays)
+                for score, (i, j), word in hplays) | set(
+                    (score, (j, i), DOWN, word)
+                    for score, (i, j), word in vplays)
 
 
 def make_play(play, board):
@@ -404,6 +416,16 @@ def test():
         'ID', 'ER', 'QUIT', 'ART', 'AREA', 'EQUID', 'RUE', 'TUI', 'ARE', 'QI',
         'ADEQUATE', 'RUT'
     ]))
+
+    def ok(hand, n, s, d, w):
+        result = best_play(hand, list(a_board()))
+        test_case = result[:3] == (n, s, d) and result[-1].upper() == w.upper()
+        print(test_case)
+        return test_case
+
+    assert ok('ABCEHKN', 64, (3, 2), (1, 0), 'BACKBENCH')
+    assert ok('_BCEHKN', 62, (3, 2), (1, 0), 'BaCKBENCH')
+    assert ok('__CEHKN', 61, (9, 1), (1, 0), 'KiCk')
 
     print('tests pass')
 
