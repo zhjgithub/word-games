@@ -12,29 +12,22 @@ Word game boggle.
 
 def boggle_words(board, minlength=3):
     "Find all the words on this Boggle board; return as a set of words."
+
+    def find_boggle(pre, path):
+        if pre in WORDS and len(pre) >= minlength:
+            results.add(pre)
+        if pre in PREFIXES:
+            for n in neighbors(path[-1], N):
+                L = board[n]
+                if L != BORDER and n not in path:
+                    find_boggle(pre + L, path + [n])
+
     results = set()
+    N = size(board)
     for i, L in enumerate(board):
-        if L != '|':
-            results |= find_boggle(board, minlength, L, i)
+        if L != BORDER:
+            find_boggle(L, [i])
 
-    return results
-
-
-def find_boggle(board, minlength, pre, pos, visited=None, results=None):
-    if visited is None:
-        visited = ()
-    if results is None:
-        results = set()
-    visited += (pos, )
-    for n in neighbors(pos, size(board)):
-        L = board[n]
-        if L != '|' and n not in visited:
-            word = pre + L
-            if word in WORDS and len(word) >= minlength:
-                results.add(word)
-            if word in PREFIXES:
-                find_boggle(board, minlength, word, n, visited + (n, ),
-                            results)
     return results
 
 
