@@ -66,9 +66,8 @@ def find_prefixes(hand, pre='', results=None):
         results.add(pre)
         for L in hand:
             if L == '_':
-                for l in LETTERS:
-                    find_prefixes(
-                        hand.replace(L, '', 1), pre + l.lower(), results)
+                for l in LOWER_LETTERS:
+                    find_prefixes(hand.replace(L, '', 1), pre + l, results)
             else:
                 find_prefixes(hand.replace(L, '', 1), pre + L, results)
     return results
@@ -87,9 +86,10 @@ def add_suffixes1(hand, pre, results):
 def add_suffixes(hand, pre, start, row, results, anchored=True):
     "Add all possible suffixes, and accumulate (start, word) pairs in results."
     i = start + len(pre)
-    if pre.upper() in WORDS and anchored and not is_letter(row[i]):
+    PRE = pre.upper()
+    if PRE in WORDS and anchored and not is_letter(row[i]):
         results.add((start, pre))
-    if pre.upper() in PREFIXES:
+    if PRE in PREFIXES:
         sq = row[i]
         if is_letter(sq):
             add_suffixes(hand, pre + sq, start, row, results)
@@ -161,6 +161,9 @@ class anchor(set):
 
 LETTERS = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 ANY = anchor(LETTERS)  # The anchor that can be any letter
+LOWER_LETTERS = list(map(str.lower, LETTERS))
+for L in LOWER_LETTERS:
+    POINTS[L] = 0
 
 
 def is_letter(sq):
@@ -236,8 +239,7 @@ def calculate_score(board, pos, direction, hand, word):
             DW, '*') else 1
         letter_mult = 1 if is_letter(
             sq) else 3 if b == TL else 2 if b == DL else 1
-        if not L.islower():
-            total += POINTS[L] * letter_mult
+        total += POINTS[L] * letter_mult
         if isinstance(sq, anchor) and sq is not ANY and direction is not DOWN:
             crosstotal += cross_word_score(board, L, (i, j), other_direction)
     return crosstotal + total * word_mult
@@ -265,9 +267,9 @@ def all_plays(hand, board):
     hplays = horizontal_plays(hand, board)  # set of ((i, j), word)
     vplays = horizontal_plays(hand, transpose(board))  # set of ((j, i), word)
     return set((score, (i, j), ACROSS, word)
-                for score, (i, j), word in hplays) | set(
-                    (score, (j, i), DOWN, word)
-                    for score, (i, j), word in vplays)
+               for score, (i, j), word in hplays) | set(
+                   (score, (j, i), DOWN, word)
+                   for score, (i, j), word in vplays)
 
 
 def make_play(play, board):
